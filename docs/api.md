@@ -14,6 +14,10 @@ De API heeft de volgende eindpunten:
 | *[/functie](#functie)*                        | OK³          | Not found  | -                       | -                  |
 | *[/functie?{query-string}](#functiefunctieid)*| Not found    | -          | -                       | -                  |
 | *[/functie/{functieid}](#functiefunctieid)*   | OK           | -          | Method not allowed      | Method not allowed |
+| *[/filter](#filter)*                          | Not found    | Not found  | -                       | -                  |
+| *[/filter/kolommen](#filterkolommen)*         | Not found    | -          | -                       | -                  |
+| *[/filter/{filterid}](#filterfilterid)*       | Not found    | -          | Not found               | Not found          |
+| *[/ledenlijst](#ledenlijst)*                  | Not found    | -          | -                       | -                  |
 
  ¹ Geen verbondsgegevens/”lidkaartafgedrukt”, adres/“giscode” en adres/“omschrijving”
    Functies gaan in de toekomst niet meer per groep geordend worden
@@ -192,6 +196,14 @@ Een specifiek lid
       "href": "https://ga.sgv.be/rest/lid/d5f75b320b812440010b8127f95f4db4",
       "method": "PATCH",
       "secties": ["persoonsgegevens", "adressen", "email", "functies.A3143G", "groepseigen"]
+    }, { //Indien lid vanuit filter opgeroepen werd en er dus een vorig en volgend lid mogelijk is
+      "rel": "prev",
+      "href": "https://ga.sgv.be/rest/lid/d5f75b320b812440010b8127f95f4db4?pos=acme",
+      "method": "GET"
+    }, {//Indien lid vanuit filter opgeroepen werd en er dus een vorig en volgend lid mogelijk is
+      "rel": "next",
+      "href": "https://ga.sgv.be/rest/lid/d5f75b320b812440010b8127f95f4db4?pos=bar",
+      "method": "GET"
     }
   ]
 }
@@ -448,6 +460,197 @@ Geen body nodig.
 Een error met een bevestigingslink.
 
 
+### `/filter/{filterid}`
+#### `GET`
+
+##### Request
+Vraag een specifieke filter op met een id.
+
+De speciale `filterid` `huidige` wordt gebruikt om de filter gebruikt door de ledenlijst aan te duiden.
+
+De `huidige` filter moet niet perse een opgeslagen filter zijn.
+
+##### Response
+```javascript
+{
+  "id": "d5f75e23385c5e6e0139493b8546035e",  //Niet aanwezig voor `huidige` filter als niet opgeslagen
+  "naam": "Mijn filter", //Niet aanwezig voor `huidige` filter als niet opgeslagen
+  "type":"verbond",  // Niet aanwezig voor `huidige` als niet opgeslagen.  Mogelijkheden ['verbond', 'groep', 'lid']
+  "groep": "A3143G", // Enkel aanwezig indien type groep
+  "kolommen": [
+    {
+       "type" : "vinkje", // Zie dynamische velden
+       "id" : "c81e728d9d4c2f636f067f89cc14862c", // leesbare id voor verbondsvelden
+       "label": "tekst veld",
+       "beschrijving": "voor hover",
+       "van": "groep"
+    }, {
+       "type" : "tekst", // Zie dynamische velden
+       "id" : "persoonsgegevens.voornaam", //pad naar veld in lid json structuur (zie foutmeldingen)
+       "label": "Voornaam",
+       "beschrijving": "voor hover",
+       "van": "verbond"
+    }
+  ],
+  "filter": { // per filtertype een attribuut, mag afwezig zijn als niet belangrijk
+    "functies": ["d5f75e23385c5e6e0139493b8546035e"], // Lijst van functieid's
+    "leeftijd": {
+      "ouderdan": 16, //optioneel
+      "jongerdan": 13, //optioneel
+      "op31december": true //optioneel false by default
+    },
+    "geslacht": "jongen", //<> meisje
+    "groepen": ["A3143G"],
+    "groepseigen": [
+      {
+        "veld": "c81e728d9d4c2f636f067f89cc14862c", //veld-id
+        "waarde": "ok",
+        "patroon": true // LIKE pattern optioneel false by default % en _ voor matching
+      }
+    ]
+  },
+  "sortering": [  // Moet in aanwezig zijn in de kolommen
+    {
+      "kolom": "c81e728d9d4c2f636f067f89cc14862c",
+      "oplopend": true
+    }
+  ],
+  "links":[
+    {    
+      "href": "https://ga.sgv.be/rest/filter/d5f75e23385c5e6e0139493b8546035e",  //Niet aanwezig voor `huidige` filter als niet opgeslagen
+      "rel": "self",
+      "method": "GET"
+    }, {
+      "rel": "update", //Enkel aanwezig als je dit type filter mag wijzigen
+      "href": "https://ga.sgv.be/rest/filter/d5f75b320b812440010b8127f95f4db4",
+      "method": "PATCH",
+      "secties": ["id" /*Enkel bij `huidige`*/, "naam", "groep" /*als type == "groep"*/, "kolommen", "filter", "sortering"]  //"naam" niet zichtbaar voor "huidige"
+    }
+  ],
+  "aangepast": "2015-06-04T08:34:41.823Z"
+}
+```
+
+#### `PATCH`
+Werkt zoals andere `PATCH`es
+
+##### Request
+de te `PATCH`en secties
+
+##### Response
+zoals `GET` indien succesvol
+
+#### `DELETE`
+Om een filter te deleten, `huidige` mag niet ge-deleted worden.
+
+##### Request
+Geen body nodig.
+
+##### Response
+HTTP 204 zonder body indien toegelaten.
+
+
+### `/filter`
+#### `GET`
+
+##### Request
+Geen body nodig.
+
+##### Response
+```javascript
+{
+  "filters": [ //Enkel opgeslage filters, huidige niet dus.
+    {
+      "id": "d5f75e23385c5e6e0139493b8546035e",  //Niet aanwezig voor `huidige` filter als niet opgeslagen
+      "naam": "Mijn filter", //Niet aanwezig voor `huidige` filter als niet opgeslagen
+      "type":"verbond",  // Niet aanwezig voor `huidige` als niet opgeslagen.  Mogelijkheden ['verbond', 'groep', 'lid']
+      "groep": "A3143G", // Enkel aanwezig indien type groep
+      "links":[
+        {    
+          "href": "https://ga.sgv.be/rest/filter/d5f75e23385c5e6e0139493b8546035e",  //Niet aanwezig voor `huidige` filter als niet opgeslagen
+          "rel": "self",
+          "method": "GET"
+        }, {
+          "rel": "update", //Enkel aanwezig als je dit type filter mag wijzigen
+          "href": "https://ga.sgv.be/rest/filter/d5f75b320b812440010b8127f95f4db4",
+          "method": "PATCH",
+          "secties": ["id", "naam", "groep" /*als type == "groep"*/, "kolommen", "filter", "sortering"]  //"naam" niet zichtbaar voor "huidige"
+        }
+      ]
+    }
+  ],
+  "links":[
+    {    
+      "href": "https://ga.sgv.be/rest/filter",
+      "rel": "self",
+      "method": "GET"
+    }, {
+      "rel": "create",
+      "href": "https://ga.sgv.be/rest/filter",
+      "method": "POST",
+    }, {    
+      "href": "https://ga.sgv.be/rest/filter/huidige",
+      "rel": "current",
+      "method": "GET"
+    }, 
+  ]
+}
+```
+
+#### `POST`
+##### Request
+Alle secties behalve `links` en `id`
+
+##### Response
+Redirect naar nieuwe filter.
+
+### `/filter/kolommen`
+#### `GET`
+//Een lijst met alle toegelaten kolommen van een filter.
+
+### `/ledenlijst`
+#### `GET`
+##### Request
+2 optionele uri parameters toegelaten:
+* `offset`: bij het hoeveelste lid de ledenlijst moet starten
+* `aantal`: maximum aantal leden server mag teruggeven.  (de server mag minder teruggeven)
+
+##### Response
+Redirect naar nieuwe filter.
+```javascript
+{
+  "aantal": 20, // Aantal leden in huidige response
+  "totaal": 1231, //Aantal leden in ledenlijst
+  "leden": [
+    {
+      "id": "d5f75b320b812440010b8127f95f4db4",
+      "waarden": ["Baden", true], //voor volgorde zie filter
+      "links":[
+        {    
+          "href": "https://ga.sgv.be/lid/d5f75b320b812440010b8127f95f4db4?positie=foo", //Merk op extra paramter, de server kan ervoor kiezen om hier een extra parameter mee te geven, om zo prev en next correct te berekenen als lid meerdere keren in de lijst zit.
+          "rel": "self",
+          "method": "GET"
+        },
+      ]
+    }
+  ]
+  "links":[
+    {    
+      "href": "https://ga.sgv.be/rest/ledenlijst?offset=0",
+      "rel": "self",
+      "method": "GET"
+    }, {
+      "rel": "next",
+      "method": "GET",
+      "href": "https://ga.sgv.be/rest/ledenlijst?offset=20",
+    }, {    
+      "href": "https://ga.sgv.be/rest/filter/huidige",
+      "rel": "filter",
+      "method": "GET"
+    }, 
+  ]
+}
+```
 
 ## Errors
 
