@@ -198,11 +198,11 @@ Een specifiek lid
       "secties": ["persoonsgegevens", "adressen", "email", "functies.A3143G", "groepseigen"]
     }, { //Indien lid vanuit filter opgeroepen werd en er dus een vorig en volgend lid mogelijk is
       "rel": "prev",
-      "href": "https://ga.sgv.be/rest/lid/d5f75b320b812440010b8127f95f4db4?pos=acme",
+      "href": "https://ga.sgv.be/rest/lid/d5f75b320b812440010b8127f95f4db4?positie=acme",
       "method": "GET"
     }, {//Indien lid vanuit filter opgeroepen werd en er dus een vorig en volgend lid mogelijk is
       "rel": "next",
-      "href": "https://ga.sgv.be/rest/lid/d5f75b320b812440010b8127f95f4db4?pos=bar",
+      "href": "https://ga.sgv.be/rest/lid/d5f75b320b812440010b8127f95f4db4?positie=bar",
       "method": "GET"
     }
   ]
@@ -612,7 +612,7 @@ Redirect naar nieuwe filter.
 #### `GET`
 ##### Request
 2 optionele uri parameters toegelaten:
-* `offset`: bij het hoeveelste lid de ledenlijst moet starten
+* `offset`: bij het hoeveelste lid de ledenlijst moet starten (Inclusief startend van 0)
 * `aantal`: maximum aantal leden server mag teruggeven.  (de server mag minder teruggeven)
 
 ##### Response
@@ -621,10 +621,11 @@ Redirect naar nieuwe filter.
 {
   "aantal": 20, // Aantal leden in huidige response
   "totaal": 1231, //Aantal leden in ledenlijst
+  "offset": 0,
   "leden": [
     {
       "id": "d5f75b320b812440010b8127f95f4db4",
-      "waarden": ["Baden", true], //voor volgorde zie filter
+      "waarden": ["Baden", true], //voor volgorde zie filter kolommen
       "links":[
         {    
           "href": "https://ga.sgv.be/lid/d5f75b320b812440010b8127f95f4db4?positie=foo", //Merk op extra paramter, de server kan ervoor kiezen om hier een extra parameter mee te geven, om zo prev en next correct te berekenen als lid meerdere keren in de lijst zit.
